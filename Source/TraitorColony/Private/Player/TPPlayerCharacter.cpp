@@ -3,32 +3,35 @@
 
 #include "Player/TPPlayerCharacter.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+
 // Sets default values
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	CameraArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Arm"));
+	CameraArmComponent->SetupAttachment(RootComponent);
+	CameraArmComponent->TargetArmLength = 500.f;
+	CameraArmComponent->bUsePawnControlRotation = true;
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraComponent->SetupAttachment(CameraArmComponent);
+	CameraComponent->bUsePawnControlRotation = false;
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 }
 
-// Called when the game starts or when spawned
-void ATPPlayerCharacter::BeginPlay()
+void ATPPlayerCharacter::MoveInDirection(const FVector2D MoveDirection)
 {
-	Super::BeginPlay();
+	const FRotator Rotation = FRotator(0.f, GetControlRotation().Yaw, 0.f);
+	const FVector ForwardDirection = FRotationMatrix(Rotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);
 
+	AddMovementInput(ForwardDirection, MoveDirection.Y);
+	AddMovementInput(RightDirection, MoveDirection.X);
 }
-
-// Called every frame
-void ATPPlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
